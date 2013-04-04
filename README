@@ -1,5 +1,8 @@
-connman-network-monitor
-=======================
+GNetworkMonitor for Connection Manager
+**************************************
+
+Copyright (C) 2012  Intel Corporation. All rights reserved.
+
 
 This is a GNetworkMonitor plugin that uses network
 status information from ConnMan to determine if
