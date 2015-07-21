@@ -1,6 +1,6 @@
 AC_PREREQ(2.60)
 AC_INIT(libconnman-network-monitor, 0.1)
-AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+AM_INIT_AUTOMAKE([subdir-objects])
 
 AM_CONFIG_HEADER(config.h)
 
