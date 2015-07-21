@@ -1,6 +1,6 @@
 
 plugindir = $(libdir)/gio/modules
-plugin_cflags =	-Isrc -std=gnu99 -Wall -O2 -D_FORTIFY_SOURCE=2 \
+plugin_cflags =	-Isrc -std=gnu99 \
 	@DBUS_CFLAGS@ @GLIB_CFLAGS@ @GOBJECT_CFLAGS@ \
 	@GIO_CFLAGS@ @CONCFLAGS@
 plugin_ldflags = -no-undefined -module -avoid-version $(DBUS_LIBS)
