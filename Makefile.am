@@ -3,7 +3,7 @@ plugindir = $(libdir)/gio/modules
 plugin_cflags =	-Isrc -std=gnu99 \
 	@DBUS_CFLAGS@ @GLIB_CFLAGS@ @GOBJECT_CFLAGS@ \
 	@GIO_CFLAGS@ @CONCFLAGS@
-plugin_ldflags = -no-undefined -module -avoid-version $(DBUS_LIBS)
+plugin_ldflags = -no-undefined -module -avoid-version
 
 connman_sources = src/connman-api.c src/connman-api.h
 
@@ -16,7 +16,7 @@ endif # MAINTAINER_MODE
 plugin_LTLIBRARIES = libconnman-network-monitor.la
 plugin_objects = $(libconnman_network_monitor_la_OBJECTS)
 libconnman_network_monitor_la_CFLAGS = $(plugin_cflags)
-libconnman_network_monitor_la_LIBADD = $(DBUS_LIBS) $(DBUS_GLIB_LIBS)
+libconnman_network_monitor_la_LIBADD = $(DBUS_LIBS) $(GLIB_LIBS) $(GOBJECT_LIBS) $(GIO_LIBS)
 libconnman_network_monitor_la_SOURCES = src/connman-network-monitor.c \
 					$(connman_sources)
 
