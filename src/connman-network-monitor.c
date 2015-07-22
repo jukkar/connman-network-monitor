@@ -34,6 +34,7 @@ static guint network_changed_signal = 0;
 enum {
 	PROP_0,
 	PROP_NETWORK_AVAILABLE,
+	PROP_CONNECTIVITY,
 };
 
 enum connman_state {
@@ -149,6 +150,11 @@ static void get_property(GObject *object, guint prop_id,
 		g_value_set_boolean(value, get_state(monitor));
 		break;
 
+	case PROP_CONNECTIVITY:
+		/* FIXME: Implement connectivity and captive portal checking. */
+		g_value_set_enum(value, get_state(monitor) ? G_NETWORK_CONNECTIVITY_FULL : G_NETWORK_CONNECTIVITY_LOCAL);
+		break;
+
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
 		break;
@@ -168,6 +174,9 @@ g_network_monitor_connman_class_init(GNetworkMonitorConnmanClass *klass)
 	g_object_class_override_property(gobject_class,
 					PROP_NETWORK_AVAILABLE,
 					"network-available");
+	g_object_class_override_property(gobject_class,
+					PROP_CONNECTIVITY,
+					"connectivity");
 
 	g_type_class_add_private(gobject_class,
 				sizeof(GNetworkMonitorConnmanPrivate));
