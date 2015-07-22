@@ -80,20 +80,16 @@ static void network_monitor_iface_init(GNetworkMonitorInterface *iface);
 static void network_monitor_initable_iface_init(GInitableIface *iface);
 static void g_network_monitor_connman_init(GNetworkMonitorConnman *self);
 static void g_network_monitor_connman_class_init(GNetworkMonitorConnmanClass *klass);
+static void g_network_monitor_connman_class_finalize(GNetworkMonitorConnmanClass *klass);
 GType g_network_monitor_connman_get_type(void);
 
-G_DEFINE_TYPE_WITH_CODE(GNetworkMonitorConnman,
+G_DEFINE_DYNAMIC_TYPE_EXTENDED(GNetworkMonitorConnman,
 			g_network_monitor_connman,
-			G_TYPE_OBJECT,
-			G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE,
+			G_TYPE_OBJECT, 0  /* flags */,
+			G_IMPLEMENT_INTERFACE_DYNAMIC(G_TYPE_INITABLE,
 				network_monitor_initable_iface_init)
-			G_IMPLEMENT_INTERFACE(G_TYPE_NETWORK_MONITOR,
-				network_monitor_iface_init)
-			g_io_extension_point_implement(
-				G_NETWORK_MONITOR_EXTENSION_POINT_NAME,
-				g_define_type_id,
-				"connman",
-				priority))
+			G_IMPLEMENT_INTERFACE_DYNAMIC(G_TYPE_NETWORK_MONITOR,
+				network_monitor_iface_init))
 
 static GObject *network_monitor_constructor(GType type, guint n_props,
 						GObjectConstructParam *props)
@@ -177,6 +173,11 @@ g_network_monitor_connman_class_init(GNetworkMonitorConnmanClass *klass)
 				sizeof(GNetworkMonitorConnmanPrivate));
 }
 
+static void
+g_network_monitor_connman_class_finalize(GNetworkMonitorConnmanClass *klass)
+{
+}
+
 static enum connman_state string2state(const char *state)
 {
 	if (g_strcmp0(state, "idle") == 0)
@@ -218,6 +219,9 @@ static void property_changed(const char *property, void *value,
 
 static void g_network_monitor_connman_init(GNetworkMonitorConnman *self)
 {
+	/* Leak the module to keep it from being unloaded. */
+	g_type_plugin_use (g_type_get_plugin (CONNMAN_TYPE_NETWORK_MONITOR));
+
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
 						CONNMAN_TYPE_NETWORK_MONITOR,
 						GNetworkMonitorConnmanPrivate);
@@ -312,19 +316,11 @@ static void network_monitor_iface_init(GNetworkMonitorInterface *iface)
 
 void g_io_module_load(GIOModule *module)
 {
-	GIOExtensionPoint *ep;
-
-	ep = g_io_extension_point_register(G_NETWORK_MONITOR_EXTENSION_POINT_NAME);
-	if (ep == NULL) {
-		g_warning("Extension point %s not found",
-			G_NETWORK_MONITOR_EXTENSION_POINT_NAME);
-		return;
-	}
-
-	g_io_extension_point_set_required_type(ep,
-					CONNMAN_TYPE_NETWORK_MONITOR);
-
-	g_type_module_use(G_TYPE_MODULE(module));
+	g_network_monitor_connman_register_type (G_TYPE_MODULE (module));
+	g_io_extension_point_implement (G_NETWORK_MONITOR_EXTENSION_POINT_NAME,
+	                                CONNMAN_TYPE_NETWORK_MONITOR,
+	                                "connman",
+	                                priority);
 }
 
 void g_io_module_unload(GIOModule *module)
