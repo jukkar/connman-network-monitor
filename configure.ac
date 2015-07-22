@@ -51,6 +51,9 @@ else
 fi
 AC_SUBST(GIO_MODULE_DIR)
 
+AC_PATH_PROG([GIO_QUERYMODULES],[gio-querymodules])
+AC_SUBST([GIO_QUERYMODULES])
+
 AC_ARG_ENABLE([test],
 		[AS_HELP_STRING([--enable-test], [Enable test programs])],
 		[],[enable_test=no])

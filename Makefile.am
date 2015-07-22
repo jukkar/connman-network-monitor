@@ -37,3 +37,14 @@ MAINTAINERCLEANFILES = \
         install-sh ltmain.sh missing mkinstalldirs \
         config.log config.status config.guess config.sub \
         build-stamp compile depcomp acinclude.m4 aclocal.m4
+
+# Need to rebuild the GIO module cache on install and uninstall
+install-exec-hook:
+	if test -n "$(GIO_QUERYMODULES)" -a -z "$(DESTDIR)"; then \
+		$(GIO_QUERYMODULES) $(GIO_MODULE_DIR); \
+	fi
+
+uninstall-hook:
+	if test -n "$(GIO_QUERYMODULES)" -a -z "$(DESTDIR)"; then \
+		$(GIO_QUERYMODULES) $(GIO_MODULE_DIR); \
+	fi
