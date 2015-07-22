@@ -329,7 +329,7 @@ void g_io_module_unload(GIOModule *module)
 
 char** g_io_module_query(void)
 {
-	char **eps = g_try_new(char *, 2);
+	char **eps = g_new(char *, 2);
 	eps[0] = g_strdup(G_NETWORK_MONITOR_EXTENSION_POINT_NAME);
 	eps[1] = NULL;
 	return eps;
