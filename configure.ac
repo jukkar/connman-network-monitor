@@ -1,6 +1,6 @@
 AC_PREREQ(2.60)
 AC_INIT(libconnman-network-monitor, 0.1)
-AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+AM_INIT_AUTOMAKE([subdir-objects])
 
 AM_CONFIG_HEADER(config.h)
 
@@ -50,6 +50,9 @@ else
 	GIO_MODULE_DIR="${path_giomodule}"
 fi
 AC_SUBST(GIO_MODULE_DIR)
+
+AC_PATH_PROG([GIO_QUERYMODULES],[gio-querymodules])
+AC_SUBST([GIO_QUERYMODULES])
 
 AC_ARG_ENABLE([test],
 		[AS_HELP_STRING([--enable-test], [Enable test programs])],
