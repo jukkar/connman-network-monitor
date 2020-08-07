@@ -35,6 +35,7 @@ enum {
 	PROP_0,
 	PROP_NETWORK_AVAILABLE,
 	PROP_CONNECTIVITY,
+	PROP_METERED,
 };
 
 enum connman_state {
@@ -158,6 +159,11 @@ static void get_property(GObject *object, guint prop_id,
 		g_value_set_enum(value, get_state(monitor) ? G_NETWORK_CONNECTIVITY_FULL : G_NETWORK_CONNECTIVITY_LOCAL);
 		break;
 
+	case PROP_METERED:
+		/* FIXME: Implement metered checking. */
+		g_value_set_boolean(value, FALSE);
+		break;
+
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
 		break;
@@ -180,6 +186,9 @@ g_network_monitor_connman_class_init(GNetworkMonitorConnmanClass *klass)
 	g_object_class_override_property(gobject_class,
 					PROP_CONNECTIVITY,
 					"connectivity");
+	g_object_class_override_property(gobject_class,
+					PROP_METERED,
+					"network-metered");
 }
 
 static void
