@@ -16,6 +16,7 @@ endif # MAINTAINER_MODE
 plugin_LTLIBRARIES = libconnman-network-monitor.la
 plugin_objects = $(libconnman_network_monitor_la_OBJECTS)
 libconnman_network_monitor_la_CFLAGS = $(plugin_cflags)
+libconnman_network_monitor_la_LDFLAGS = $(plugin_ldflags)
 libconnman_network_monitor_la_LIBADD = $(DBUS_LIBS) $(GLIB_LIBS) $(GOBJECT_LIBS) $(GIO_LIBS)
 libconnman_network_monitor_la_SOURCES = src/connman-network-monitor.c \
 					$(connman_sources)

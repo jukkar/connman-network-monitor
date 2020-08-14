@@ -35,6 +35,7 @@ enum {
 	PROP_0,
 	PROP_NETWORK_AVAILABLE,
 	PROP_CONNECTIVITY,
+	PROP_METERED,
 };
 
 enum connman_state {
@@ -55,7 +56,6 @@ struct _GNetworkMonitorConnmanPrivate
 typedef struct _GNetworkMonitorConnman GNetworkMonitorConnman;
 struct _GNetworkMonitorConnman {
 	GObject parent;
-	GNetworkMonitorConnmanPrivate *priv;
 };
 
 typedef struct _GNetworkMonitorConnmanClass GNetworkMonitorConnmanClass;
@@ -90,7 +90,8 @@ G_DEFINE_DYNAMIC_TYPE_EXTENDED(GNetworkMonitorConnman,
 			G_IMPLEMENT_INTERFACE_DYNAMIC(G_TYPE_INITABLE,
 				network_monitor_initable_iface_init)
 			G_IMPLEMENT_INTERFACE_DYNAMIC(G_TYPE_NETWORK_MONITOR,
-				network_monitor_iface_init))
+				network_monitor_iface_init)
+			G_ADD_PRIVATE_DYNAMIC(GNetworkMonitorConnman))
 
 static GObject *network_monitor_constructor(GType type, guint n_props,
 						GObjectConstructParam *props)
@@ -105,15 +106,17 @@ static GObject *network_monitor_constructor(GType type, guint n_props,
 static void network_monitor_finalize(GObject *object)
 {
 	GNetworkMonitorConnman *monitor;
+	GNetworkMonitorConnmanPrivate *priv;
 
 	g_return_if_fail(object != NULL);
 	g_return_if_fail(CONNMAN_IS_NETWORK_MONITOR(object));
 
 	monitor = CONNMAN_NETWORK_MONITOR(object);
 
-	connman_manager_cleanup(monitor->priv->manager);
-	monitor->priv->manager = NULL;
-	monitor->priv->state = STATE_UNKNOWN;
+	priv = g_network_monitor_connman_get_instance_private(monitor);
+	connman_manager_cleanup(priv->manager);
+	priv->manager = NULL;
+	priv->state = STATE_UNKNOWN;
 
 	G_OBJECT_CLASS(g_network_monitor_connman_parent_class)->
 					finalize(object);
@@ -137,7 +140,8 @@ static gboolean is_available(enum connman_state state)
 
 static gboolean get_state(GNetworkMonitorConnman *monitor)
 {
-	return is_available(monitor->priv->state);
+	GNetworkMonitorConnmanPrivate *priv = g_network_monitor_connman_get_instance_private(monitor);
+	return is_available(priv->state);
 }
 
 static void get_property(GObject *object, guint prop_id,
@@ -153,6 +157,11 @@ static void get_property(GObject *object, guint prop_id,
 	case PROP_CONNECTIVITY:
 		/* FIXME: Implement connectivity and captive portal checking. */
 		g_value_set_enum(value, get_state(monitor) ? G_NETWORK_CONNECTIVITY_FULL : G_NETWORK_CONNECTIVITY_LOCAL);
+		break;
+
+	case PROP_METERED:
+		/* FIXME: Implement metered checking. */
+		g_value_set_boolean(value, FALSE);
 		break;
 
 	default:
@@ -177,9 +186,9 @@ g_network_monitor_connman_class_init(GNetworkMonitorConnmanClass *klass)
 	g_object_class_override_property(gobject_class,
 					PROP_CONNECTIVITY,
 					"connectivity");
-
-	g_type_class_add_private(gobject_class,
-				sizeof(GNetworkMonitorConnmanPrivate));
+	g_object_class_override_property(gobject_class,
+					PROP_METERED,
+					"network-metered");
 }
 
 static void
@@ -205,6 +214,7 @@ static void property_changed(const char *property, void *value,
 							void *user_data)
 {
 	GNetworkMonitorConnman *monitor = user_data;
+	GNetworkMonitorConnmanPrivate *priv;
 	enum connman_state old_state, new_state;
 
 	if (monitor == NULL) {
@@ -212,7 +222,8 @@ static void property_changed(const char *property, void *value,
 		return;
 	}
 
-	old_state = new_state = monitor->priv->state;
+	priv = g_network_monitor_connman_get_instance_private(monitor);
+	old_state = new_state = priv->state;
 
 	if (g_strcmp0(property, "State") == 0) {
 		new_state = string2state(value);
@@ -220,7 +231,7 @@ static void property_changed(const char *property, void *value,
 	}
 
 	if (is_available(new_state) != is_available(old_state)) {
-		monitor->priv->state = new_state;
+		priv->state = new_state;
 		g_signal_emit(monitor, network_changed_signal, 0,
 							get_state(monitor));
 	}
@@ -230,10 +241,6 @@ static void g_network_monitor_connman_init(GNetworkMonitorConnman *self)
 {
 	/* Leak the module to keep it from being unloaded. */
 	g_type_plugin_use (g_type_get_plugin (CONNMAN_TYPE_NETWORK_MONITOR));
-
-	self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
-						CONNMAN_TYPE_NETWORK_MONITOR,
-						GNetworkMonitorConnmanPrivate);
 }
 
 static gboolean network_monitor_initable_init(GInitable *initable,
@@ -241,10 +248,11 @@ static gboolean network_monitor_initable_init(GInitable *initable,
 					GError **error)
 {
 	GNetworkMonitorConnman *cm = CONNMAN_NETWORK_MONITOR(initable);
+	GNetworkMonitorConnmanPrivate *priv = g_network_monitor_connman_get_instance_private(cm);
 
-	cm->priv->manager = connman_manager_init(property_changed, cm);
+	priv->manager = connman_manager_init(property_changed, cm);
 
-	DBG("cm %p manager %p", cm, cm->priv->manager);
+	DBG("cm %p manager %p", cm, priv->manager);
 
 	return TRUE;
 }
